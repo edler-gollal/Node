@@ -11,6 +11,9 @@ exports = module.exports = function(io) {
     io.to(socket.id).emit('name change', socket.name);
     sendInfoMessage(socket.name + " connected");
 
+    var address = socket.handshake.address;
+    console.log(address + " > " + address.address + ":" + address.port);
+
 
     // var chatlog;
     // var buf = new Buffer(4096);
@@ -69,9 +72,14 @@ exports = module.exports = function(io) {
     } else if(cmd == "hack") {
       sendChatMessage(socket,line,true);
     } else if(cmd == "users") {
-      sendInfoMessage("There are " + clientAmount + " online users.");
+      io.to(socket.id).emit('info message', "There are " + clientAmount + " online users.");
+      // var clients = io.sockets.clients();
+      // for(var i = 0; i<clients.length; i++){
+      //   var address = clients[i].handshake.address;
+      //   io.to(socket.id).emit('info message', address.address + ":" + address.port);
+      // }
     } else if(cmd == "tts") {
-      line = "<script> var msg = new SpeechSynthesisUtterance('" + socket.name + " said " + line + "'); window.speechSynthesis.speak(msg)</script>";
+      line = "<script> var msg = new SpeechSynthesisUtterance('" + socket.name + " said " + line + "'); window.speechSynthesis.speak(msg)</script>" + line;
       sendChatMessage(socket,line,true);
     } else if(cmd == "ping") {
       var d = new Date();
