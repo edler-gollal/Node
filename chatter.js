@@ -8,30 +8,30 @@ exports = module.exports = function(io) {
 
     clientAmount++;
     socket.name = "Anonymous";
+    io.to(socket.id).emit('name change', socket.name);
     sendInfoMessage(socket.name + " connected");
 
-    io.to(socket.id).emit('request name');
 
-    var chatlog;
-    var buf = new Buffer(4096);
-    fs.open(__dirname + '/tmp/chatlog.txt', 'a+', function(err,fd) {
-      if(err) console.log(err);
-      fs.read(fd,buf,0,buf.length,0,function(err,bytes){
-        if(err) console.log(err);
-        if(bytes > 0){
-          chatlog = buf.slice(0, bytes).toString();
-          var lines = chatlog.split("\n");
-          lines.slice(Math.max(lines.length-5,0));
-          for(var i = 0; i < lines.length; i++) {
-            if(lines[i].charAt(0) == "%") {
-              io.to(socket.id).emit('info message', lines[i].substr(1));
-            } else {
-              io.to(socket.id).emit('chat message', lines[i]);
-            }
-          }
-        }
-      })
-    })
+    // var chatlog;
+    // var buf = new Buffer(4096);
+    // fs.open(__dirname + '/tmp/chatlog.txt', 'a+', function(err,fd) {
+    //   if(err) console.log(err);
+    //   fs.read(fd,buf,0,buf.length,0,function(err,bytes){
+    //     if(err) console.log(err);
+    //     if(bytes > 0){
+    //       chatlog = buf.slice(0, bytes).toString();
+    //       var lines = chatlog.split("\n");
+    //       lines.slice(Math.max(lines.length-5,0));
+    //       for(var i = 0; i < lines.length; i++) {
+    //         if(lines[i].charAt(0) == "%") {
+    //           io.to(socket.id).emit('info message', lines[i].substr(1));
+    //         } else {
+    //           io.to(socket.id).emit('chat message', lines[i]);
+    //         }
+    //       }
+    //     }
+    //   })
+    // })
 
     socket.on('chat message', function(msg) {
       sendChatMessage(socket,msg);
@@ -65,7 +65,7 @@ exports = module.exports = function(io) {
     args.shift();
 
     if(cmd == "rename") {
-      io.to(socket.id).emit('name change', args[0]);
+      io.to(socket.id).emit('name change', line);
     } else if(cmd == "hack") {
       sendChatMessage(socket,line,true);
     } else if(cmd == "users") {

@@ -1,8 +1,9 @@
 
 $(document).ready(function(){
 
+  if(prompt("Passwort?") != "cool") return; //I know you "hacked" my password here
+
   var socket = io();
-  var name = "Anonymous";
 
   $('form').submit(function(){
     var msg = $('#m').val()
@@ -19,10 +20,6 @@ $(document).ready(function(){
 
   socket.on('info message', function(msg) {
     $('#messages').append('<li class="information">' + msg + '</li>');
-  });
-
-  socket.on('request name', function(){
-    changeName(name)
   });
 
   socket.on('name change', function(changeTo) {
