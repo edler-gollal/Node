@@ -1,0 +1,107 @@
+%New User has changed his name to awd
+14:15 - awd &gt; So der chat wurde jetzt zurückgesetzts
+%New User has changed his name to Lele
+14:16 - undefined >  hi
+%Lele has changed his name to Lele
+14:16 - Lele >  hi
+14:17 - Lele &gt; wd
+14:17 - Lele &gt; a
+14:17 - Lele &gt; dwa
+14:17 - Lele &gt; fgw
+14:17 - Lele &gt; aw
+14:17 - Lele &gt; gwa
+14:17 - Lele &gt; d
+14:17 - Lele &gt; a
+14:17 - Lele &gt; f
+14:17 - Lele &gt; aw
+%New User has changed his name to peter
+14:22 - Lele &gt; Hier
+%Lele has changed his name to hi
+%New User has changed his name to daw
+14:27 - daw > <a href=https://google.com>https://google.com</a>
+%New User has changed his name to wa
+14:32 - wa > daw
+14:32 - wa > awf
+14:32 - wa > f
+14:32 - wa > gdf
+14:32 - wa > <a href='google.com'>google.com</a>
+14:32 - wa > jetzt reichts <a href='.'>.</a>
+%New User has changed his name to dwa
+14:34 - dwa > hallo <a href='.'>.</a>
+14:34 - dwa > nein so <a href='nicht,.'>nicht,.</a>
+14:36 - dwa > dwa
+14:36 - dwa > <a href='soo.soo'>soo.soo</a>
+14:36 - dwa > <a href='soo.'>soo.</a>
+14:36 - dwa > sooodwaduoaiwdh <a href='.'>.</a>
+14:36 - dwa > hallo <a href='.'>.</a>
+14:37 - dwa > <a href='jjjj.'>jjjj.</a>
+14:38 - dwa > <a href='dawhdaw.'>dawhdaw.</a>
+14:38 - dwa > <a href='fawjdf.'>fawjdf.</a>
+14:38 - dwa > dwaod.
+14:39 - dwa > <a href='google.com'>google.com</a>
+14:39 - dwa > was geht bei euch so.
+14:39 - dwa > und jetzt vorne .hi
+14:40 - dwa > hi
+14:40 - dwa > dwaoid
+14:40 - dwa > duiwahdoiaw
+14:40 - dwa > <a href='http://google.com'>http://google.com</a>
+14:41 - dwa > https:// <a href='http://google.com'>http://google.com</a>
+14:42 - dwa > <a href='http://google.com'>http://google.com</a>
+14:42 - dwa > <a href='http://https://google.com'>http://https://google.com</a>
+14:43 - dwa > <a href='http://google.com'>http://google.com</a>
+14:43 - dwa > <a href='https://google.com'>https://google.com</a>
+14:43 - dwa > <a href='http://hjioudjhaw.com'>http://hjioudjhaw.com</a>
+%New User has changed his name to dwa
+14:44 - dwa > <a href='http://google.com'>google.com</a>
+14:46 - dwa > <a target='_blank' href='http://google.de'>google.de</a>
+14:47 - dwa > localhost:3000
+14:47 - dwa > http://localhost:3000
+%New User has changed his name to lele
+%There are undefined online users.
+%There are 1 online users.
+14:51 - lele > hi
+%New User has changed his name to peter
+%There are 1 online users.
+%There are 3 online users.
+%New User has changed his name to Hi
+%There are 3 online users.
+15:03 - Hi > name
+15:07 - new > awd
+15:08 - neu > dwa
+%neu has changed his name to neu
+15:08 - neu > dawhf
+%neu has changed his name to m
+15:08 - m > dwa
+15:08 - m > hier
+15:09 - Anonymous > dwaf
+15:09 - Anonymous > f
+%m is now called m
+15:11 - Anonymous > wda
+%Anonymous is now called lele
+15:12 - lele > diouwa
+15:12 - lele > dhaf
+15:12 - lele > awduawhfa
+15:12 - Anonymous > noch?
+15:12 - Anonymous > dwa
+15:13 - Anonymous > csk
+15:13 - Anonymous > dwa
+%lele is now called hodaw
+15:16 - Anonymous > dawf
+15:16 - Anonymous > fwa
+%Anonymous is now called neu
+%neu is now called neu
+15:16 - neu > j
+15:16 - neu > dh
+15:17 - Anonymous > dawfwa
+%Anonymous is now called lele
+%There are 1 online users.
+%lele is now called lele
+15:23 - Anonymous > dwa
+%Anonymous is now called hi
+%hi is now called hi
+%hi is now called hi
+%hi is now called hi
+%hi is now called hi
+%hi is now called hi
+%Anonymous is now called Lele
+15:41 - Anonymous > (ping 

@@ -1,0 +1,11 @@
+{
+  "name": "test-chat",
+  "version": "0.0.1",
+  "description": "my first socket.io app",
+  "dependencies": {
+    "connect": "^3.5.0",
+    "express": "^4.10.2",
+    "serve-static": "^1.11.1",
+    "socket.io": "^1.7.1"
+  }
+}
