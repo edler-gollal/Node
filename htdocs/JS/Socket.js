@@ -1,8 +1,6 @@
 
 $(document).ready(function(){
 
-  if(prompt("Passwort?") != "cool") return; //I know you "hacked" my password here
-
   var socket = io();
 
   $('form').submit(function(){
