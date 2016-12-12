@@ -4,11 +4,13 @@ exports = module.exports = function(io) {
 
   var clientAmount = 0;
 
-  io.on('connection', function(socket){
+  var chatNSP = io.of('/Chat');
+
+  chatNSP.on('connection', function(socket){
 
     clientAmount++;
     socket.name = "Anonymous";
-    io.to(socket.id).emit('name change', socket.name);
+    chatNSP.to(socket.id).emit('name change', socket.name);
     sendInfoMessage(socket.name + " connected");
 
     var address = socket.handshake.address;
@@ -27,9 +29,9 @@ exports = module.exports = function(io) {
     //       lines.slice(Math.max(lines.length-5,0));
     //       for(var i = 0; i < lines.length; i++) {
     //         if(lines[i].charAt(0) == "%") {
-    //           io.to(socket.id).emit('info message', lines[i].substr(1));
+    //           chatNSP.to(socket.id).emit('info message', lines[i].substr(1));
     //         } else {
-    //           io.to(socket.id).emit('chat message', lines[i]);
+    //           chatNSP.to(socket.id).emit('chat message', lines[i]);
     //         }
     //       }
     //     }
@@ -50,7 +52,7 @@ exports = module.exports = function(io) {
     socket.on('pingcheck', function(milliseconds){
       var d = new Date();
       var diff = d.getMilliseconds() - milliseconds;
-      io.to(socket.id).emit('info message', "Your ping is " + diff + "ms!");
+      chatNSP.to(socket.id).emit('info message', "Your ping is " + diff + "ms!");
     })
 
     socket.on('disconnect', function(){
@@ -68,22 +70,22 @@ exports = module.exports = function(io) {
     args.shift();
 
     if(cmd == "rename") {
-      io.to(socket.id).emit('name change', line);
+      chatNSP.to(socket.id).emit('name change', line);
     } else if(cmd == "hack") {
       sendChatMessage(socket,line,true);
     } else if(cmd == "users") {
-      io.to(socket.id).emit('info message', "There are " + clientAmount + " online users.");
-      // var clients = io.sockets.clients();
+      chatNSP.to(socket.id).emit('info message', "There are " + clientAmount + " online users.");
+      // var clients = chatNSP.sockets.clients();
       // for(var i = 0; i<clients.length; i++){
       //   var address = clients[i].handshake.address;
-      //   io.to(socket.id).emit('info message', address.address + ":" + address.port);
+      //   chatNSP.to(socket.id).emit('info message', address.address + ":" + address.port);
       // }
     } else if(cmd == "tts") {
       line = "<script> var msg = new SpeechSynthesisUtterance('" + socket.name + " said " + line + "'); window.speechSynthesis.speak(msg)</script>" + line;
       sendChatMessage(socket,line,true);
     } else if(cmd == "ping") {
       var d = new Date();
-      io.to(socket.id).emit('pingcheck', d.getMilliseconds());
+      chatNSP.to(socket.id).emit('pingcheck', d.getMilliseconds());
     }
   }
 
@@ -122,7 +124,7 @@ exports = module.exports = function(io) {
       }
 
       line += msg;
-      io.emit('chat message', line);
+      chatNSP.emit('chat message', line);
       fs.appendFile(__dirname + '/tmp/chatlog.txt', line + "\n", function(err){
         if(err) console.log(err);
       })
@@ -130,7 +132,7 @@ exports = module.exports = function(io) {
     }
   }
   function sendInfoMessage(msg) {
-    io.emit('info message', msg);
+    chatNSP.emit('info message', msg);
     if(!(msg.includes("connect"))){
       fs.appendFile(__dirname + '/tmp/chatlog.txt', '%' + msg + "\n", function(err){
         if(err) console.log(err);
