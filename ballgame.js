@@ -10,10 +10,11 @@ exports = module.exports = function(io) {
   ballNSP.on('connection', function(socket){
 
     joinedPlayers++;
-    console.log("Someone connected, #: " + joinedPlayers);
     var id = joinedPlayers;
 
-    players[id] = {};
+    players[id] = {
+      keys: {}
+    };
 
     ballNSP.to(socket.id).emit('set_player_id',id);
 
@@ -35,7 +36,7 @@ exports = module.exports = function(io) {
       players[id].y = y/1000;
     })
 
-    socket.on('request_other_positions', function(except) {
+    socket.on('request_player_positions', function() {
       for(var key in players) {
         if(key != except) {
           if(players.hasOwnProperty(key)) {
@@ -43,6 +44,10 @@ exports = module.exports = function(io) {
           }
         }
       }
+    })
+
+    socket.on('player_key_press', function(data){
+      players[id].keys[data.key] = data.pressed;
     })
 
     socket.on('console_log', function(msg){
