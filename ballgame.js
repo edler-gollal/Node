@@ -150,6 +150,6 @@ exports = module.exports = function(io) {
     for(var socket in SOCKET_LIST) {
       SOCKET_LIST[socket].emit('render_all', data);
     }
-  },canvasSize/64);
+  },1000/64);
 
 }
