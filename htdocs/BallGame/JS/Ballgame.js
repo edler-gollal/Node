@@ -22,14 +22,20 @@ var global = {};
 function loadVariables(){
   global.c = document.getElementById('display-game');
   global.ctx = global.c.getContext('2d');
-  global.c.width = window.innerWidth;
-  global.c.height = window.innerHeight;
+  global.c.width = global.c.height = 800;
 
-  global.config.bgColor = "#E3F2FD";
-  global.config = {};
-  global.config.radius = parseInt(global.c.width/50);
-  global.config.color = "#BBDEFB";
-  global.others = {};
+  global.config = {
+    bgColor: "#E3F2FD",
+    players: {
+      radius: parseInt(global.c.width/60),
+      color: "#BBDEFB"
+    },
+    bullets: {
+      radius: parseInt(global.c.width/300),
+      color: "black"
+    },
+    mousePos: {}
+  };
 }
 
 function registerEvents() {
@@ -42,9 +48,10 @@ function registerEvents() {
     console.log(msg);
   })
 
-  global.socket.on('render_players', function(data){
+  global.socket.on('render_all', function(data){
     clearScreen();
-    renderPlayers(data);
+    renderBullets(data.bullets);
+    renderPlayers(data.players);
   })
 
 }
@@ -67,6 +74,23 @@ $(document).keyup(function(e){
   });
 })
 
+$(document).mousemove(function(e){
+  global.config.mousePos.x = e.clientX;
+  global.config.mousePos.y = e.clientY;
+})
+
+$(document).mousedown(function(e){
+  var rect = global.c.getBoundingClientRect();
+
+  var x = (global.config.mousePos.x-rect.left)/(rect.right-rect.left)*global.c.width;
+  var y = (global.config.mousePos.y-rect.top)/(rect.bottom-rect.top)*global.c.height;
+
+  global.socket.emit('player_shoot', {
+    x: x,
+    y: y
+  });
+})
+
 //-----------------------//
 //------Rendering--------//
 //-----------------------//
@@ -78,7 +102,7 @@ function clearScreen() {
   global.ctx.fill();
 }
 
-function renderPlayer(x,y,r,c){
+function renderCircle(x,y,r,c){
   global.ctx.beginPath();
   global.ctx.arc(x,y,r,0,Math.PI*2);
   global.ctx.stroke();
@@ -88,8 +112,16 @@ function renderPlayer(x,y,r,c){
 
 function renderPlayers(data) {
   for(var player in data) {
-    var posX = parseInt(global.c.width * data[player].x);
-    var posY = parseInt(global.c.height * data[player].y);
-    renderPlayer(posX,posY,global.playerCfg.radius,global.playerCfg.color);
+    var posX = data[player].x;
+    var posY = data[player].y;
+    renderCircle(posX,posY,global.config.players.radius,global.config.players.color);
+  }
+}
+
+function renderBullets(data) {
+  for(var bullet in data) {
+    var posX = data[bullet].x;
+    var posY = data[bullet].y;
+    renderCircle(posX,posY,global.config.bullets.radius,global.config.bullets.color);
   }
 }
