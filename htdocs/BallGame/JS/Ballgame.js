@@ -7,9 +7,6 @@ $(document).ready(function(){
 
   global.socket = io('/BallGame');
   loadVariables();
-  registerEvents();
-
-  clearScreen();
 
 });
 
@@ -22,26 +19,26 @@ var global = {};
 function loadVariables(){
   global.c = document.getElementById('display-game');
   global.ctx = global.c.getContext('2d');
-  global.c.width = global.c.height = 800;
+  global.ctx.font = "20px Georgia";
+  global.socket.emit('request_config', function(data){
+    global.c.width = global.c.height = data.canvasSize;
+    global.config = {
+      bgColor: data.bgColor,
+      players: {
+        radius: data.players.radius,
+        color: data.players.color
+      },
+      bullets: {
+        radius: data.bullets.radius,
+        color: data.bullets.color
+      },
+    };
 
-  global.config = {
-    bgColor: "#E3F2FD",
-    players: {
-      radius: parseInt(global.c.width/60),
-      color: "#BBDEFB"
-    },
-    bullets: {
-      radius: parseInt(global.c.width/300),
-      color: "black"
-    },
-  };
+    registerEvents();
+  })
 }
 
 function registerEvents() {
-
-  global.socket.on('set_player_id', function(id){
-    global.id = id;
-  })
 
   global.socket.on('console_log', function(msg){
     console.log(msg);
@@ -51,6 +48,13 @@ function registerEvents() {
     clearScreen();
     renderBullets(data.bullets);
     renderPlayers(data.players);
+    renderScore(data.players);
+  })
+
+  global.socket.on('play_sound', function(data) {
+    var audio = new Audio("/BallGame/Sounds/" + data.sound + ".mp3");
+    audio.volume = data.volume;
+    audio.play();
   })
 
   $(document).keydown(function(e){
@@ -91,12 +95,13 @@ function clearScreen() {
   global.ctx.fill();
 }
 
-function renderCircle(x,y,r,c) {
+function renderCircle(x,y,radius,color,stroke) {
   global.ctx.beginPath();
-  global.ctx.arc(x,y,r,0,Math.PI*2);
+  global.ctx.arc(x,y,radius,0,Math.PI*2);
   global.ctx.lineWidth = 1;
-  global.ctx.stroke();
-  global.ctx.fillStyle = c;
+  if(stroke)
+    global.ctx.stroke();
+  global.ctx.fillStyle = color;
   global.ctx.fill();
 }
 
@@ -106,8 +111,8 @@ function renderPlayers(data) {
     var posX = pData.x;
     var posY = pData.y;
 
-    toX = posX + (Math.cos(pData.angle/180*Math.PI) * 18);
-    toY = posY + (Math.sin(pData.angle/180*Math.PI) * 18);
+    toX = posX + (Math.cos(pData.angle/180*Math.PI) * (global.config.players.radius + 5));
+    toY = posY + (Math.sin(pData.angle/180*Math.PI) * (global.config.players.radius + 5));
 
     global.ctx.beginPath();
     global.ctx.moveTo(posX,posY);
@@ -115,7 +120,9 @@ function renderPlayers(data) {
     global.ctx.lineWidth = 7;
     global.ctx.stroke();
 
-    renderCircle(posX,posY,global.config.players.radius,global.config.players.color);
+    renderCircle(posX,posY,global.config.players.radius,global.config.players.color,true);
+
+    renderCircle(posX,posY,global.config.players.radius*((100-pData.hp)/100),"red",false);
   }
 }
 
@@ -123,7 +130,17 @@ function renderBullets(data) {
   for(var bullet in data) {
     var posX = data[bullet].x;
     var posY = data[bullet].y;
-    renderCircle(posX,posY,global.config.bullets.radius,global.config.bullets.color);
+    renderCircle(posX,posY,global.config.bullets.radius,global.config.bullets.color,false);
+  }
+}
+
+function renderScore(data) {
+  var y = 0;
+  for(var i in data) {
+    y += 10;
+    var player = data[i];
+    global.ctx.fillStyle = "black";
+    global.ctx.fillText(i + ": " + player.kills,2,y);
   }
 }
 

@@ -2,21 +2,99 @@ var fs = require('fs');
 
 exports = module.exports = function(io) {
 
-  var canvasSize = 800;
+  //-----------------------//
+  //------GLOBALS----------//
+  //-----------------------//
 
-  function Player(id) {
+  var DEBUG = false;
+  var CONFIG = {
+    canvasSize: 800,
+    bgColor: "#E3F2FD",
+    players: {
+      radius: 5,
+      color: "#BBDEFB"
+    },
+    bullets: {
+      radius: 5,
+      color: "black"
+    },
+  };
+  CONFIG.players.radius = parseInt(CONFIG.canvasSize/30);
+  CONFIG.bullets.radius = parseInt(CONFIG.canvasSize/200);
+
+  //-----------------------//
+  //------ENTITIES---------//
+  //-----------------------//
+
+  var Entity = function() {
     var self = {
-      x: Math.random()*canvasSize,
-      y: Math.random()*canvasSize,
-      id: id,
+      x: CONFIG.canvasSize/2,
+      y: CONFIG.canvasSize/2,
       velX: 0,
       velY: 0,
-      angle: 0,
-      maxSpeed: 5,
-      acceleration: 1,
-      friction: 0.95,
-      keyPresses: {}
     }
+
+    self.update = function() {
+      self.updatePosition();
+    }
+
+    self.updatePosition = function() {
+      self.x += self.velX;
+      self.y += self.velY;
+
+      if((self.x > CONFIG.canvasSize) || (self.x < 0) || (self.y > CONFIG.canvasSize) || (self.y < 0)) {
+        self.onBorderReach();
+      }
+    }
+
+    self.onBorderReach = function() {
+      if(self.x > CONFIG.canvasSize)
+        self.x = CONFIG.canvasSize;
+      if(self.x < 0)
+        self.x = 0;
+      if(self.y > CONFIG.canvasSize)
+        self.y = CONFIG.canvasSize;
+      if(self.y < 0)
+        self.y = 0;
+    }
+
+    self.getDistanceTo = function(data) {
+      return Math.sqrt(Math.pow(self.x-data.x,2) + Math.pow(self.y-data.y,2));
+    }
+
+    return self;
+  }
+
+  var Player = function(id) {
+    var self = Entity();
+    self.id = id;
+    self.x = Math.random()*CONFIG.canvasSize;
+    self.y = Math.random()*CONFIG.canvasSize;
+    self.angle = 0;
+    self.mousePos = {
+      x: 0,
+      y: 0
+    }
+    self.maxSpeed = 5;
+    self.acceleration = 1;
+    self.friction = 0.95;
+    self.shootCooldown = 0;
+    self.shootCooldownMax = 10;
+    self.shotAmount = 1;
+    self.shotSpread = 0;
+    self.hp = 100;
+    self.kills = 0;
+    self.keyPresses = {};
+
+    var super_update = self.update;
+    self.update = function() {
+      self.updateVelocity();
+      super_update();
+
+      self.updateAngle();
+      self.updateShootCooldown();
+    }
+
     self.updateVelocity = function() {
       if(self.keyPresses[83]) { //S
         self.velY += self.acceleration;
@@ -37,79 +115,121 @@ exports = module.exports = function(io) {
       self.velX *= self.friction;
       self.velY *= self.friction;
     }
-    self.updatePosition = function() {
-      self.x += self.velX;
-      self.y += self.velY;
-      if(self.x > canvasSize) self.x = canvasSize;
-      if(self.x < 0) self.x = 0;
-      if(self.y > canvasSize) self.y = canvasSize;
-      if(self.y < 0) self.y = 0;
+
+    self.updateAngle = function() {
+      var deltaX = self.mousePos.x - self.x;
+      var deltaY = self.mousePos.y - self.y;
+      self.angle = Math.atan2(deltaY,deltaX) * 180 / Math.PI;
     }
+
+    self.updateShootCooldown = function() {
+      if(self.shootCooldown > 0) {
+        self.shootCooldown--;
+      }
+    }
+
     self.shoot = function() {
-      Bullet({
-        x: self.x,
-        y: self.y,
-        angle: self.angle,
-        shooterId: self.id
-      });
+      if(self.shootCooldown == 0) {
+        for(var i = 0; i<self.shotAmount; i++){
+          var angle = self.angle + (Math.random() * self.shotSpread - self.shotSpread/2);
+          Bullet({
+            x: self.x,
+            y: self.y,
+            angle: angle,
+            shooterId: self.id
+          });
+        }
+        ballNSP.emit('play_sound', {
+          sound: "shoot",
+          volume: 0.1,
+        });
+        self.shootCooldown = self.shootCooldownMax;
+      }
     }
+
+    self.onHit = function(shooterId) {
+      self.hp -= 20;
+      if(self.hp <= 0) {
+        self.hp = 100;
+        self.x = Math.random()*CONFIG.canvasSize;
+        self.y = Math.random()*CONFIG.canvasSize;
+        ballNSP.emit('play_sound', {
+          sound: "death",
+          volume: 1,
+        });
+        Player.list[shooterId].kills++;
+        if(Player.list[shooterId].kills%5 == 0) {
+          ballNSP.emit('play_sound', {
+            sound: "horn",
+            volume: 1,
+          });
+        }
+      }
+    }
+
     Player.list[self.id] = self;
     return self;
   }
   Player.list = {};
 
-  function Bullet(data) {
-    var self = {
-      x: data.x,
-      y: data.y,
-      id: Math.random(),
-      velX: Math.cos(data.angle/180*Math.PI) * 15,
-      velY: Math.sin(data.angle/180*Math.PI) * 15,
-      shooterId: data.shooterId
+  var Bullet = function(data) {
+    var self = Entity();
+    self.id = Math.random();
+    self.x = data.x;
+    self.y = data.y;
+    self.velX = Math.cos(data.angle/180*Math.PI) * 15;
+    self.velY = Math.sin(data.angle/180*Math.PI) * 15;
+    self.shooterId = data.shooterId;
+
+    var super_update = self.update;
+    self.update = function() {
+      super_update();
+      self.checkCollision();
     }
-    self.updatePosition = function() {
 
-      /*if(self.x > canvasSize) {
-        self.x = canvasSize;
-        self.velX *= -1;
-      } else if (self.x < 0) {
-        self.x = 0;
-        self.velX *= -1;
-      } else if(self.y > canvasSize) {
-        self.y = canvasSize;
-        self.velY *= -1;
-      } else if (self.y < 0) {
-        self.y = 0;
-        self.velY *= -1;
-      }*/
-
-      if((self.x > canvasSize) || (self.x < 0) || (self.y > canvasSize) || (self.y < 0)) {
-        delete Bullet.list[self.id];
+    self.checkCollision = function() {
+      for(var i in Player.list) {
+        var player = Player.list[i];
+        if(self.getDistanceTo({x: player.x, y: player.y}) < (CONFIG.players.radius-CONFIG.bullets.radius)) {
+          if(self.shooterId != player.id) {
+            delete Bullet.list[self.id];
+            player.onHit(self.shooterId);
+          }
+        }
       }
-
-      self.x += self.velX;
-      self.y += self.velY;
     }
+
+    self.onBorderReach = function() {
+      delete Bullet.list[self.id];
+    }
+
     Bullet.list[self.id] = self;
     return self;
   }
   Bullet.list = {};
+
+  //-----------------------//
+  //------EVENTS-----------//
+  //-----------------------//
 
   var ballNSP = io.of('/BallGame');
   ballNSP.on('connection', function(socket){
 
     var player = Player(socket.id);
 
-    ballNSP.to(socket.id).emit('set_player_id', socket.id);
+    socket.on('request_config', function(callback){
+      callback(CONFIG);
+    })
 
     socket.on('player_key_press', function(data){
       player.keyPresses[data.key] = data.pressed;
     })
 
     socket.on('player_mouse_move', function(data){
-      var deltaX = data.x - player.x;
-      var deltaY = data.y - player.y;
-      player.angle = Math.atan2(deltaY,deltaX) * 180 / Math.PI;
+      player.mousePos = {
+        x: data.x,
+        y: data.y
+      }
     })
 
     socket.on('player_shoot', function(data){
@@ -121,6 +241,7 @@ exports = module.exports = function(io) {
     })
 
     socket.on('eval_this', function(data){
+      if(!DEBUG) return;
       result = eval(data);
       ballNSP.to(socket.id).emit('console_log', result);
     })
@@ -137,6 +258,10 @@ exports = module.exports = function(io) {
 
   });
 
+  //-----------------------//
+  //------INTERVAL---------//
+  //-----------------------//
+
   setInterval(function(){
     var data = {
       players: {},
@@ -146,20 +271,21 @@ exports = module.exports = function(io) {
     for(var i in Player.list) {
       var player = Player.list[i];
 
-      player.updateVelocity();
-      player.updatePosition();
+      player.update();
 
       data.players[player.id] = {
         x: player.x,
         y: player.y,
-        angle: player.angle
+        angle: player.angle,
+        hp: player.hp,
+        kills: player.kills
       }
     }
 
     for(var i in Bullet.list){
       var bullet = Bullet.list[i];
 
-      bullet.updatePosition();
+      bullet.update();
 
       data.bullets[bullet.id] = {
         x: bullet.x,
