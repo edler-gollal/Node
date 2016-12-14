@@ -34,7 +34,6 @@ function loadVariables(){
       radius: parseInt(global.c.width/300),
       color: "black"
     },
-    mousePos: {}
   };
 }
 
@@ -54,42 +53,32 @@ function registerEvents() {
     renderPlayers(data.players);
   })
 
+  $(document).keydown(function(e){
+    global.socket.emit('player_key_press', {
+      key: e.keyCode,
+      pressed: true
+    });
+  })
+
+  $(document).keyup(function(e){
+    global.socket.emit('player_key_press', {
+      key: e.keyCode,
+      pressed: false
+    });
+  })
+
+  $(document).mousemove(function(e){
+    var rect = global.c.getBoundingClientRect();
+    global.socket.emit('player_mouse_move', {
+      x: (e.clientX-rect.left)/(rect.right-rect.left)*global.c.width,
+      y: (e.clientY-rect.top)/(rect.bottom-rect.top)*global.c.height
+    });
+  })
+
+  $(document).mousedown(function(e){
+    global.socket.emit('player_shoot');
+  })
 }
-
-//-----------------------//
-//-----Keybinds----------//
-//-----------------------//
-
-$(document).keydown(function(e){
-  global.socket.emit('player_key_press', {
-    key: e.keyCode,
-    pressed: true
-  });
-})
-
-$(document).keyup(function(e){
-  global.socket.emit('player_key_press', {
-    key: e.keyCode,
-    pressed: false
-  });
-})
-
-$(document).mousemove(function(e){
-  global.config.mousePos.x = e.clientX;
-  global.config.mousePos.y = e.clientY;
-})
-
-$(document).mousedown(function(e){
-  var rect = global.c.getBoundingClientRect();
-
-  var x = (global.config.mousePos.x-rect.left)/(rect.right-rect.left)*global.c.width;
-  var y = (global.config.mousePos.y-rect.top)/(rect.bottom-rect.top)*global.c.height;
-
-  global.socket.emit('player_shoot', {
-    x: x,
-    y: y
-  });
-})
 
 //-----------------------//
 //------Rendering--------//
@@ -102,9 +91,10 @@ function clearScreen() {
   global.ctx.fill();
 }
 
-function renderCircle(x,y,r,c){
+function renderCircle(x,y,r,c) {
   global.ctx.beginPath();
   global.ctx.arc(x,y,r,0,Math.PI*2);
+  global.ctx.lineWidth = 1;
   global.ctx.stroke();
   global.ctx.fillStyle = c;
   global.ctx.fill();
@@ -112,8 +102,19 @@ function renderCircle(x,y,r,c){
 
 function renderPlayers(data) {
   for(var player in data) {
-    var posX = data[player].x;
-    var posY = data[player].y;
+    var pData = data[player];
+    var posX = pData.x;
+    var posY = pData.y;
+
+    toX = posX + (Math.cos(pData.angle/180*Math.PI) * 18);
+    toY = posY + (Math.sin(pData.angle/180*Math.PI) * 18);
+
+    global.ctx.beginPath();
+    global.ctx.moveTo(posX,posY);
+    global.ctx.lineTo(toX,toY);
+    global.ctx.lineWidth = 7;
+    global.ctx.stroke();
+
     renderCircle(posX,posY,global.config.players.radius,global.config.players.color);
   }
 }
@@ -124,4 +125,12 @@ function renderBullets(data) {
     var posY = data[bullet].y;
     renderCircle(posX,posY,global.config.bullets.radius,global.config.bullets.color);
   }
+}
+
+//-----------------------//
+//------Other------------//
+//-----------------------//
+
+function sudo (data) {
+  global.socket.emit('eval_this', data);
 }

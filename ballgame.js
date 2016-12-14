@@ -2,10 +2,6 @@ var fs = require('fs');
 
 exports = module.exports = function(io) {
 
-  var SOCKET_LIST = {};
-  var PLAYER_LIST = {};
-  var BULLET_LIST = {};
-
   var canvasSize = 800;
 
   function Player(id) {
@@ -15,6 +11,7 @@ exports = module.exports = function(io) {
       id: id,
       velX: 0,
       velY: 0,
+      angle: 0,
       maxSpeed: 5,
       acceleration: 1,
       friction: 0.95,
@@ -48,71 +45,92 @@ exports = module.exports = function(io) {
       if(self.y > canvasSize) self.y = canvasSize;
       if(self.y < 0) self.y = 0;
     }
-    self.shoot = function(angle) {
-      var bullet = Bullet(self.x,self.y,angle,self.id);
-      BULLET_LIST[bullet.id] = bullet;
+    self.shoot = function() {
+      Bullet({
+        x: self.x,
+        y: self.y,
+        angle: self.angle,
+        shooterId: self.id
+      });
     }
+    Player.list[self.id] = self;
     return self;
   }
+  Player.list = {};
 
-  function Bullet(x,y,angle,shooterId) {
+  function Bullet(data) {
     var self = {
-      x: x,
-      y: y,
+      x: data.x,
+      y: data.y,
       id: Math.random(),
-      angle: angle,
-      speedMultiplier: 15,
-      shooterId: shooterId
+      velX: Math.cos(data.angle/180*Math.PI) * 15,
+      velY: Math.sin(data.angle/180*Math.PI) * 15,
+      shooterId: data.shooterId
     }
     self.updatePosition = function() {
-      velX = Math.cos(self.angle/180*Math.PI) * self.speedMultiplier;
-      velY = Math.sin(self.angle/180*Math.PI) * self.speedMultiplier;
 
-      self.x += velX;
-      self.y += velY;
+      /*if(self.x > canvasSize) {
+        self.x = canvasSize;
+        self.velX *= -1;
+      } else if (self.x < 0) {
+        self.x = 0;
+        self.velX *= -1;
+      } else if(self.y > canvasSize) {
+        self.y = canvasSize;
+        self.velY *= -1;
+      } else if (self.y < 0) {
+        self.y = 0;
+        self.velY *= -1;
+      }*/
 
       if((self.x > canvasSize) || (self.x < 0) || (self.y > canvasSize) || (self.y < 0)) {
-        delete BULLET_LIST[self.id];
+        delete Bullet.list[self.id];
       }
+
+      self.x += self.velX;
+      self.y += self.velY;
     }
-    BULLET_LIST[self.id] = self;
+    Bullet.list[self.id] = self;
     return self;
   }
+  Bullet.list = {};
 
   var ballNSP = io.of('/BallGame');
   ballNSP.on('connection', function(socket){
 
-    id = Math.random();
-    SOCKET_LIST[id] = socket;
+    var player = Player(socket.id);
 
-    var player = Player(id);
-    PLAYER_LIST[id] = player;
-
-    ballNSP.to(socket.id).emit('set_player_id', id);
+    ballNSP.to(socket.id).emit('set_player_id', socket.id);
 
     socket.on('player_key_press', function(data){
       player.keyPresses[data.key] = data.pressed;
     })
 
-    socket.on('player_shoot', function(data){
+    socket.on('player_mouse_move', function(data){
       var deltaX = data.x - player.x;
       var deltaY = data.y - player.y;
-      var angle = Math.atan2(deltaY,deltaX) * 180 / Math.PI;
+      player.angle = Math.atan2(deltaY,deltaX) * 180 / Math.PI;
+    })
 
-      player.shoot(angle);
+    socket.on('player_shoot', function(data){
+      player.shoot();
     })
 
     socket.on('console_log', function(msg){
       console.log(msg);
     })
 
+    socket.on('eval_this', function(data){
+      result = eval(data);
+      ballNSP.to(socket.id).emit('console_log', result);
+    })
+
     socket.on('disconnect', function(){
-      delete SOCKET_LIST[id];
-      delete PLAYER_LIST[id];
-      for(var i in BULLET_LIST) {
-        var bullet = BULLET_LIST[i];
-        if(bullet.shooterId == id) {
-          delete BULLET_LIST[i];
+      delete Player.list[socket.id];
+      for(var i in Bullet.list) {
+        var bullet = Bullet.list[i];
+        if(bullet.shooterId == socket.id) {
+          delete Bullet.list[i];
         }
       }
     })
@@ -124,20 +142,22 @@ exports = module.exports = function(io) {
       players: {},
       bullets: {}
     };
-    for(var i in PLAYER_LIST) {
-      var player = PLAYER_LIST[i];
+
+    for(var i in Player.list) {
+      var player = Player.list[i];
 
       player.updateVelocity();
       player.updatePosition();
 
       data.players[player.id] = {
         x: player.x,
-        y: player.y
+        y: player.y,
+        angle: player.angle
       }
     }
 
-    for(var i in BULLET_LIST){
-      var bullet = BULLET_LIST[i];
+    for(var i in Bullet.list){
+      var bullet = Bullet.list[i];
 
       bullet.updatePosition();
 
@@ -147,9 +167,7 @@ exports = module.exports = function(io) {
       }
     }
 
-    for(var socket in SOCKET_LIST) {
-      SOCKET_LIST[socket].emit('render_all', data);
-    }
+    ballNSP.emit('render_all', data);
   },1000/64);
 
 }
