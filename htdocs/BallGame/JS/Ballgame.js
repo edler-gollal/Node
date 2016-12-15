@@ -19,7 +19,6 @@ var global = {};
 function loadVariables(){
   global.c = document.getElementById('display-game');
   global.ctx = global.c.getContext('2d');
-  global.ctx.font = "20px Georgia";
   global.socket.emit('request_config', function(data){
     global.c.width = global.c.height = data.canvasSize;
     global.config = {
@@ -48,25 +47,26 @@ function registerEvents() {
     clearScreen();
     renderBullets(data.bullets);
     renderPlayers(data.players);
+    renderIndicators(data.indicators);
     renderScore(data.players);
   })
 
   global.socket.on('play_sound', function(data) {
     var audio = new Audio("/BallGame/Sounds/" + data.sound + ".mp3");
     audio.volume = data.volume;
-    audio.play();
+    //audio.play();
   })
 
   $(document).keydown(function(e){
-    global.socket.emit('player_key_press', {
-      key: e.keyCode,
+    global.socket.emit('player_register_input', {
+      input: e.keyCode,
       pressed: true
     });
   })
 
   $(document).keyup(function(e){
-    global.socket.emit('player_key_press', {
-      key: e.keyCode,
+    global.socket.emit('player_register_input', {
+      input: e.keyCode,
       pressed: false
     });
   })
@@ -80,7 +80,17 @@ function registerEvents() {
   })
 
   $(document).mousedown(function(e){
-    global.socket.emit('player_shoot');
+    global.socket.emit('player_register_input', {
+      input: "mouse",
+      pressed: true
+    });
+  })
+
+  $(document).mouseup(function(e){
+    global.socket.emit('player_register_input', {
+      input: "mouse",
+      pressed: false
+    });
   })
 }
 
@@ -106,13 +116,13 @@ function renderCircle(x,y,radius,color,stroke) {
 }
 
 function renderPlayers(data) {
-  for(var player in data) {
-    var pData = data[player];
-    var posX = pData.x;
-    var posY = pData.y;
+  for(var i in data) {
+    var player = data[i];
+    var posX = player.x;
+    var posY = player.y;
 
-    toX = posX + (Math.cos(pData.angle/180*Math.PI) * (global.config.players.radius + 5));
-    toY = posY + (Math.sin(pData.angle/180*Math.PI) * (global.config.players.radius + 5));
+    toX = posX + (Math.cos(player.angle/180*Math.PI) * (global.config.players.radius + 5));
+    toY = posY + (Math.sin(player.angle/180*Math.PI) * (global.config.players.radius + 5));
 
     global.ctx.beginPath();
     global.ctx.moveTo(posX,posY);
@@ -122,15 +132,25 @@ function renderPlayers(data) {
 
     renderCircle(posX,posY,global.config.players.radius,global.config.players.color,true);
 
-    renderCircle(posX,posY,global.config.players.radius*((100-pData.hp)/100),"red",false);
+    renderCircle(posX,posY,global.config.players.radius*((100-player.hp)/100),"red",false);
   }
 }
 
 function renderBullets(data) {
-  for(var bullet in data) {
-    var posX = data[bullet].x;
-    var posY = data[bullet].y;
+  for(var i in data) {
+    var posX = data[i].x;
+    var posY = data[i].y;
     renderCircle(posX,posY,global.config.bullets.radius,global.config.bullets.color,false);
+  }
+}
+
+function renderIndicators(data) {
+  for(var i in data) {
+    var indicator = data[i];
+    var alpha = 1 - indicator.fadedPercentage;
+    global.ctx.fillStyle = "rgba(" + indicator.color.r + "," + indicator.color.g + "," + indicator.color.b + "," + alpha + ")";
+    global.ctx.font = "20px Helvetica";
+    global.ctx.fillText("" + indicator.value,indicator.x - global.ctx.measureText(indicator.value).width/2,indicator.y);
   }
 }
 
@@ -140,7 +160,8 @@ function renderScore(data) {
     y += 10;
     var player = data[i];
     global.ctx.fillStyle = "black";
-    global.ctx.fillText(i + ": " + player.kills,2,y);
+    global.ctx.font = "10px Helvetica";
+    global.ctx.fillText(i + ": " + player.kills,5,y);
   }
 }
 

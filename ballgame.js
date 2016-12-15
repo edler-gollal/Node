@@ -6,12 +6,12 @@ exports = module.exports = function(io) {
   //------GLOBALS----------//
   //-----------------------//
 
-  var DEBUG = false;
+  var DEBUG = true;
   var CONFIG = {
     canvasSize: 800,
     bgColor: "#E3F2FD",
     players: {
-      radius: 5,
+      radius: 25,
       color: "#BBDEFB"
     },
     bullets: {
@@ -19,8 +19,6 @@ exports = module.exports = function(io) {
       color: "black"
     },
   };
-  CONFIG.players.radius = parseInt(CONFIG.canvasSize/30);
-  CONFIG.bullets.radius = parseInt(CONFIG.canvasSize/200);
 
   //-----------------------//
   //------ENTITIES---------//
@@ -83,8 +81,9 @@ exports = module.exports = function(io) {
     self.shotAmount = 1;
     self.shotSpread = 0;
     self.hp = 100;
+    self.bulletDamage = 15;
     self.kills = 0;
-    self.keyPresses = {};
+    self.inputs = {};
 
     var super_update = self.update;
     self.update = function() {
@@ -93,22 +92,23 @@ exports = module.exports = function(io) {
 
       self.updateAngle();
       self.updateShootCooldown();
+      self.updateShooting();
     }
 
     self.updateVelocity = function() {
-      if(self.keyPresses[83]) { //S
+      if(self.inputs[83]) { //S
         self.velY += self.acceleration;
         if(self.velY > self.maxSpeed) self.velY = self.maxSpeed;
       }
-      if(self.keyPresses[68]) { //D
+      if(self.inputs[68]) { //D
         self.velX += self.acceleration;
         if(self.velX > self.maxSpeed) self.velX = self.maxSpeed;
       }
-      if(self.keyPresses[87]) { //W
+      if(self.inputs[87]) { //W
         self.velY -= self.acceleration;
         if(self.velY < -self.maxSpeed) self.velY = -self.maxSpeed;
       }
-      if(self.keyPresses[65]) { //A
+      if(self.inputs[65]) { //A
         self.velX -= self.acceleration;
         if(self.velX < -self.maxSpeed) self.velX = -self.maxSpeed;
       }
@@ -128,6 +128,11 @@ exports = module.exports = function(io) {
       }
     }
 
+    self.updateShooting = function() {
+      if(self.inputs["mouse"])
+        self.shoot();
+    }
+
     self.shoot = function() {
       if(self.shootCooldown == 0) {
         for(var i = 0; i<self.shotAmount; i++){
@@ -136,35 +141,44 @@ exports = module.exports = function(io) {
             x: self.x,
             y: self.y,
             angle: angle,
-            shooterId: self.id
+            shooterId: self.id,
+            damage: self.bulletDamage
           });
         }
         ballNSP.emit('play_sound', {
           sound: "shoot",
-          volume: 0.1,
+          volume: 0.01,
         });
         self.shootCooldown = self.shootCooldownMax;
       }
     }
 
-    self.onHit = function(shooterId) {
-      self.hp -= 20;
+    self.onHit = function(data) {
+      if(Math.random() < 0.1) {
+        self.hp -= data.damage*2; //Random critical hit with double damage
+        Indicator({playerId: self.id,value: "Critical: -" + data.damage*2,color: {r: 255,g: 255,b: 0}});
+      } else {
+        self.hp -= data.damage;
+        Indicator({playerId: self.id,value: "-" + data.damage,color: {r: 255,g: 0,b: 0}});
+      }
+
       if(self.hp <= 0) {
         self.hp = 100;
         self.x = Math.random()*CONFIG.canvasSize;
         self.y = Math.random()*CONFIG.canvasSize;
         ballNSP.emit('play_sound', {
           sound: "death",
-          volume: 1,
+          volume: 0.1,
         });
-        Player.list[shooterId].kills++;
-        if(Player.list[shooterId].kills%5 == 0) {
+        Player.list[data.shooterId].kills++;
+        if(Player.list[data.shooterId].kills%5 == 0) {
           ballNSP.emit('play_sound', {
             sound: "horn",
             volume: 1,
           });
         }
       }
+
     }
 
     Player.list[self.id] = self;
@@ -180,6 +194,7 @@ exports = module.exports = function(io) {
     self.velX = Math.cos(data.angle/180*Math.PI) * 15;
     self.velY = Math.sin(data.angle/180*Math.PI) * 15;
     self.shooterId = data.shooterId;
+    self.damage = data.damage;
 
     var super_update = self.update;
     self.update = function() {
@@ -190,10 +205,13 @@ exports = module.exports = function(io) {
     self.checkCollision = function() {
       for(var i in Player.list) {
         var player = Player.list[i];
-        if(self.getDistanceTo({x: player.x, y: player.y}) < (CONFIG.players.radius-CONFIG.bullets.radius)) {
+        if(self.getDistanceTo({x: player.x, y: player.y}) < (CONFIG.players.radius+CONFIG.bullets.radius)) {
           if(self.shooterId != player.id) {
             delete Bullet.list[self.id];
-            player.onHit(self.shooterId);
+            player.onHit({
+              shooterId: self.shooterId,
+              damage: self.damage
+            });
           }
         }
       }
@@ -208,6 +226,42 @@ exports = module.exports = function(io) {
   }
   Bullet.list = {};
 
+  var Indicator = function(data) {
+    var self = {
+      x: 0,
+      y: 0,
+      id: Math.random(),
+      playerId: data.playerId,
+      value: data.value,
+      fadedPercentage: 0,
+      fadeHeight: 20,
+      color: {
+        r: data.color.r,
+        g: data.color.g,
+        b: data.color.b
+      }
+    }
+
+    self.update = function() {
+      self.fadedPercentage += 0.05;
+
+      if(self.fadedPercentage >= 1){
+        delete Indicator.list[self.id];
+        return;
+      }
+
+      var player = Player.list[self.playerId];
+      var height = self.fadeHeight * self.fadedPercentage + CONFIG.players.radius + 5;
+
+      self.x = player.x;
+      self.y = player.y - height;
+    }
+
+    Indicator.list[self.id] = self;
+    return self;
+  }
+  Indicator.list = {};
+
   //-----------------------//
   //------EVENTS-----------//
   //-----------------------//
@@ -221,8 +275,8 @@ exports = module.exports = function(io) {
       callback(CONFIG);
     })
 
-    socket.on('player_key_press', function(data){
-      player.keyPresses[data.key] = data.pressed;
+    socket.on('player_register_input', function(data){
+      player.inputs[data.input] = data.pressed;
     })
 
     socket.on('player_mouse_move', function(data){
@@ -265,7 +319,8 @@ exports = module.exports = function(io) {
   setInterval(function(){
     var data = {
       players: {},
-      bullets: {}
+      bullets: {},
+      indicators: {}
     };
 
     for(var i in Player.list) {
@@ -290,6 +345,20 @@ exports = module.exports = function(io) {
       data.bullets[bullet.id] = {
         x: bullet.x,
         y: bullet.y
+      }
+    }
+
+    for(var i in Indicator.list){
+      var indicator = Indicator.list[i];
+
+      indicator.update();
+
+      data.indicators[indicator.id] = {
+        x: indicator.x,
+        y: indicator.y,
+        value: indicator.value,
+        fadedPercentage: indicator.fadedPercentage,
+        color: indicator.color
       }
     }
 
