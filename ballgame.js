@@ -6,7 +6,7 @@ exports = module.exports = function(io) {
   //------GLOBALS----------//
   //-----------------------//
 
-  var DEBUG = true;
+  var DEBUG = false;
   var CONFIG = {
     canvasSize: 800,
     bgColor: "#E3F2FD",
@@ -18,6 +18,7 @@ exports = module.exports = function(io) {
       radius: 5,
       color: "black"
     },
+    tickrate: 64
   };
 
   //-----------------------//
@@ -363,6 +364,6 @@ exports = module.exports = function(io) {
     }
 
     ballNSP.emit('render_all', data);
-  },1000/64);
+  },1000/CONFIG.tickrate);
 
 }

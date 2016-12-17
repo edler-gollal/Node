@@ -49,6 +49,7 @@ function registerEvents() {
     renderPlayers(data.players);
     renderIndicators(data.indicators);
     renderScore(data.players);
+    renderPing();
   })
 
   global.socket.on('play_sound', function(data) {
@@ -163,6 +164,16 @@ function renderScore(data) {
     global.ctx.font = "10px Helvetica";
     global.ctx.fillText(i + ": " + player.kills,5,y);
   }
+}
+
+function renderPing() {
+  var d = new Date();
+  var diff = d - global.oldDate;
+  var text = "Ping: " + diff;
+  global.ctx.fillStyle = "black";
+  global.ctx.font = "10px Helvetica";
+  global.ctx.fillText(text,global.c.width-global.ctx.measureText(text).width-5,10);
+  global.oldDate = d;
 }
 
 //-----------------------//
