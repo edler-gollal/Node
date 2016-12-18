@@ -6,19 +6,72 @@
 $(document).ready(function(){
 
   global.socket = io('/BallGame');
-  loadVariables();
+  enableLogin();
 
 });
 
+//-----------------------//
+//------Vars-------------//
+//-----------------------//
+
 var global = {};
+
+//-----------------------//
+//------Login------------//
+//-----------------------//
+
+function enableLogin() {
+
+  $('#login-signin').click(function() {
+    var username = $('#login-username').val();
+    var password = $('#login-password').val();
+    global.socket.emit('player_sign_in', {
+      username: username,
+      password: password
+    })
+  })
+
+  $('#login-signup').click(function() {
+    var username = $('#login-username').val();
+    var password = $('#login-password').val();
+    global.socket.emit('player_sign_up', {
+      username: username,
+      password: password
+    })
+  })
+
+  global.socket.on('player_sign_in', function(data){
+    if(data.success) {
+      $('#login-message').text("Signin successful...");
+      setTimeout(function() {
+        $('#login').css("display", "none");
+        loadGame();
+        $('#display-game').css("display", "block");
+        global.username = data.username;
+      }, 1000);
+    } else {
+      $('#login-message').text("Signin failed");
+    }
+  })
+
+  global.socket.on('player_sign_up', function(data){
+    if(data.success) {
+      $('#login-message').text("Signup successful...");
+    } else {
+      $('#login-message').text("Signup failed");
+    }
+  })
+
+}
 
 //-----------------------//
 //------Init------------//
 //-----------------------//
 
-function loadVariables(){
+function loadGame(){
   global.c = document.getElementById('display-game');
   global.ctx = global.c.getContext('2d');
+  global.isLearning = false;
   global.socket.emit('request_config', function(data){
     global.c.width = global.c.height = data.canvasSize;
     global.config = {
@@ -35,6 +88,10 @@ function loadVariables(){
 
     registerEvents();
   })
+
+  global.socket.emit('request_player_id', function(id){
+    global.id = id;
+  })
 }
 
 function registerEvents() {
@@ -50,12 +107,16 @@ function registerEvents() {
     renderIndicators(data.indicators);
     renderScore(data.players);
     renderPing();
+    renderMousePositions(data.players);
   })
 
   global.socket.on('play_sound', function(data) {
     var audio = new Audio("/BallGame/Sounds/" + data.sound + ".mp3");
     audio.volume = data.volume;
     //audio.play();
+  })
+
+  global.socket.on('has_hit_player', function() {
   })
 
   $(document).keydown(function(e){
@@ -128,7 +189,7 @@ function renderPlayers(data) {
     global.ctx.beginPath();
     global.ctx.moveTo(posX,posY);
     global.ctx.lineTo(toX,toY);
-    global.ctx.lineWidth = 7;
+    global.ctx.lineWidth = 10;
     global.ctx.stroke();
 
     renderCircle(posX,posY,global.config.players.radius,global.config.players.color,true);
@@ -162,7 +223,7 @@ function renderScore(data) {
     var player = data[i];
     global.ctx.fillStyle = "black";
     global.ctx.font = "10px Helvetica";
-    global.ctx.fillText(i + ": " + player.kills,5,y);
+    global.ctx.fillText(player.username + ": " + player.kills,5,y);
   }
 }
 
@@ -176,10 +237,22 @@ function renderPing() {
   global.oldDate = d;
 }
 
+function renderMousePositions(data) {
+  for(var i in data){
+    var player = data[i];
+    renderCircle(player.mousePos.x,player.mousePos.y,2,"red",false);
+  }
+}
+
 //-----------------------//
 //------Other------------//
 //-----------------------//
 
 function sudo (data) {
   global.socket.emit('eval_this', data);
+}
+
+function startLearn() {
+  global.isLearning = true;
+  startLearning();
 }

@@ -6,7 +6,7 @@ exports = module.exports = function(io) {
   //------GLOBALS----------//
   //-----------------------//
 
-  var DEBUG = false;
+  var DEBUG = true;
   var CONFIG = {
     canvasSize: 800,
     bgColor: "#E3F2FD",
@@ -78,9 +78,9 @@ exports = module.exports = function(io) {
     self.acceleration = 1;
     self.friction = 0.95;
     self.shootCooldown = 0;
-    self.shootCooldownMax = 10;
-    self.shotAmount = 1;
-    self.shotSpread = 0;
+    self.shootCooldownMax = 1;
+    self.shotAmount = 3;
+    self.shotSpread = 30;
     self.hp = 100;
     self.bulletDamage = 15;
     self.kills = 0;
@@ -162,6 +162,8 @@ exports = module.exports = function(io) {
         self.hp -= data.damage;
         Indicator({playerId: self.id,value: "-" + data.damage,color: {r: 255,g: 0,b: 0}});
       }
+
+      ballNSP.to(data.shooterId).emit('has_hit_player');
 
       if(self.hp <= 0) {
         self.hp = 100;
@@ -264,16 +266,62 @@ exports = module.exports = function(io) {
   Indicator.list = {};
 
   //-----------------------//
+  //------LOGIN------------//
+  //-----------------------//
+
+  var UserData = {};
+
+  function isCorrectLogin(data) {
+    return UserData[data.username] == data.password;
+  }
+
+  function addToUserData(data){
+    UserData[data.username] = data.password;
+  }
+
+  function isAvailableUsername(data){
+    return UserData[data.username] == null;
+  }
+
+  //-----------------------//
   //------EVENTS-----------//
   //-----------------------//
 
   var ballNSP = io.of('/BallGame');
   ballNSP.on('connection', function(socket){
 
-    var player = Player(socket.id);
+    var player;
+
+    socket.on('player_sign_in', function(data) {
+      if(isCorrectLogin(data)) {
+        player = Player(socket.id);
+        player.username = data.username;
+        ballNSP.to(socket.id).emit('player_sign_in', {
+          success: true,
+          username: data.username
+        });
+        console.log(data.username + " just signed in.");
+      } else {
+        ballNSP.to(socket.id).emit('player_sign_in', {success: false});
+      }
+    })
+
+    socket.on('player_sign_up', function(data) {
+      if(isAvailableUsername(data)) {
+        addToUserData(data);
+        ballNSP.to(socket.id).emit('player_sign_up', {success: true});
+        console.log("New Signup from " + data.username + ": " + data.password);
+      } else {
+        ballNSP.to(socket.id).emit('player_sign_up', {success: false});
+      }
+    })
 
     socket.on('request_config', function(callback){
       callback(CONFIG);
+    })
+
+    socket.on('request_player_id', function(callback){
+      callback(socket.id);
     })
 
     socket.on('player_register_input', function(data){
@@ -334,7 +382,9 @@ exports = module.exports = function(io) {
         y: player.y,
         angle: player.angle,
         hp: player.hp,
-        kills: player.kills
+        kills: player.kills,
+        username: player.username,
+        mousePos: player.mousePos
       }
     }
 
