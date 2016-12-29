@@ -343,6 +343,10 @@ exports = module.exports = function(io) {
       console.log(msg);
     })
 
+    socket.on('test_ping', function(data) {
+      ballNSP.to(socket.id).emit('test_ping', data);
+    })
+
     socket.on('eval_this', function(data){
       if(!DEBUG) return;
       result = eval(data);

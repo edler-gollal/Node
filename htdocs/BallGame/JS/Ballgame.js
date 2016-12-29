@@ -72,6 +72,7 @@ function loadGame(){
   global.c = document.getElementById('display-game');
   global.ctx = global.c.getContext('2d');
   global.isLearning = false;
+  global.ping = "null";
   global.socket.emit('request_config', function(data){
     global.c.width = global.c.height = data.canvasSize;
     global.config = {
@@ -117,6 +118,12 @@ function registerEvents() {
   })
 
   global.socket.on('has_hit_player', function() {
+  })
+
+  global.socket.on('test_ping', function(data) {
+    var timeNow = new Date();
+    var diff = timeNow.getMilliseconds() - data.time;
+    global.ping = diff;
   })
 
   $(document).keydown(function(e){
@@ -228,13 +235,11 @@ function renderScore(data) {
 }
 
 function renderPing() {
-  var d = new Date();
-  var diff = d - global.oldDate;
-  var text = "Ping: " + diff;
+  testPing();
+  var text = "Ping: " + global.ping;
   global.ctx.fillStyle = "black";
   global.ctx.font = "10px Helvetica";
   global.ctx.fillText(text,global.c.width-global.ctx.measureText(text).width-5,10);
-  global.oldDate = d;
 }
 
 function renderMousePositions(data) {
@@ -255,4 +260,8 @@ function sudo (data) {
 function startLearn() {
   global.isLearning = true;
   startLearning();
+}
+
+function testPing() {
+  global.socket.emit('test_ping', { time: new Date().getMilliseconds() });
 }
