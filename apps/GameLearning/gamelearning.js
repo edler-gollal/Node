@@ -365,6 +365,7 @@ exports = module.exports = function() {
     fs.appendFile(__dirname + '/topnetworks.txt', 'Score ' + score + ': ' + networkString + '\n', function(err){
         if(err) console.log(err);
     })
+    fs.writeFile(__dirname + '/info.txt', networkString + '\n' + 'The Highscore is ' + score, function(){});
   }
 
   loadVariables2();
