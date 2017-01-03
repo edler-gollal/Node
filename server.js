@@ -2,9 +2,11 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var Chat = require('./chat')(io);
 var fs = require('fs');
-var BallGame = require('./ballgame')(io);
+
+var Chat = require('./apps/chat')(io);
+var BallGame = require('./apps/ballgame')(io);
+var GameLearning = require('./apps/GameLearning/gamelearning')();
 
 app.use(express.static('htdocs'));
 
