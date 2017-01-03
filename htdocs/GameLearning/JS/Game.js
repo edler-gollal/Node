@@ -98,7 +98,7 @@ function game() {
   updateObstaclePosition();
   renderGame();
 
-  speed = 10 + parseInt(counter/100)
+  speed = 10 + parseInt(counter/1000)
   distance = (obstacle.x - player.x) / 5;
   if(distance < -10) distance = 100;
   if(distance > 100) distance = 100;
