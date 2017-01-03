@@ -371,8 +371,4 @@ exports = module.exports = function() {
   setupGame();
   startLearning();
 
-  setTimeout(function(){
-    importGoodNetwork(11);
-  },1000);
-
 }
