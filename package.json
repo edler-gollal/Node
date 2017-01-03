@@ -4,8 +4,10 @@
   "description": "my first socket.io app",
   "dependencies": {
     "connect": "^3.5.0",
+    "crypto-js": "^3.1.9-1",
     "express": "^4.10.2",
     "lodash": "^4.17.2",
+    "mongodb": "^2.2.16",
     "serve-static": "^1.11.1",
     "socket.io": "^1.7.1",
     "synaptic": "^1.0.8"

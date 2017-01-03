@@ -1,18 +1,23 @@
 <!doctype html>
 <html>
   <head>
-    <title>Chat</title>
+    <title>Chypt</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <script src="http://code.jquery.com/jquery-3.1.1.js"></script>
-    <script src="JS/Socket.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+    <script src="Chat.js"></script>
   </head>
 
   <body>
-    <ul id="messages"></ul>
+    <div id="loadingField">
+    </div>
+    <ul id="messages">
+      <li>What is your name?</li>
+    </ul>
     <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+      <input id="m" autocomplete="off" autofocus />
     </form>
   </body>
 

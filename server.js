@@ -2,15 +2,32 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var Chatter = require('./chatter')(io);
+var Chat = require('./chat')(io);
+var fs = require('fs');
 var BallGame = require('./ballgame')(io);
 
 app.use(express.static('htdocs'));
 
-http.listen(3003, function(){
-  console.log('listening on *:3003');
+var port = 3000;
+if(process.argv[2] != undefined) {
+  port = process.argv[2];
+}
+
+http.listen(port, function(){
+  console.log('listening on *:' + port);
 });
 
 process.on('uncaughtException', function (err) {
   console.log('Caught exception: ' + err);
+
+  var d = new Date();
+  var hours = d.getHours();
+  if(hours < 10) hours = "0" + hours;
+  var minutes = d.getMinutes();
+  if(minutes < 10) minutes = "0" + minutes;
+  var time = hours + ":" + minutes;
+
+  fs.appendFile(__dirname + '/log.txt', time + " - " + err + "\n", function(e){
+    if(e) console.log(e);
+  })
 });
