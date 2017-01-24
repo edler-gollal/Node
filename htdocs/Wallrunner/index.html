@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <title>Lele's Programme</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <script src="JS/Libraries/jquery-3.1.1.js"></script>
+    <script src="JS/Libraries/lodash.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/synaptic/1.0.8/synaptic.js"></script>
+    <script src="JS/Scripts.js"></script>
+    <script src="JS/DrawNetwork.js"></script>
+    <script src="JS/Game.js"></script>
+    <script src="JS/GameLearning.js"></script>
+  </head>
+
+  <body>
+    <div id="header">
+      <h1> WallRunner </h1>
+      <h2> Lele und Pew </h2>
+    </div>
+    <div id="display">
+      <canvas id="display-network"></canvas>
+      <div id="display-input">
+        <div id="input">
+          <div id="learning-input">
+            Hiddenlayer Neurons: <input type="number" min="1" max="30" value="10" id="hiddenLayers">
+            Generationsize: <input type="number" min="6" max="100" value="12" id="generationSize">
+            <button id="startLearning">Start Learning</button>
+          </div>
+          <button onclick="outputNetwork()" id="saveNetwork" class="hidden">Save network</button>
+          <button onclick="importGoodNetwork(11)" id="importGoodNetwork" class="hidden">Import network</button>
+        </div>
+      </div>
+      <div id="display-log">
+        <div id="log"></div>
+      </div>
+      <canvas id="display-chart"></canvas>
+      <canvas id="display-game"></canvas>
+    </div>
+  </body>
+
+</html>
