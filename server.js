@@ -4,8 +4,8 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var fs = require('fs');
 
-var Chat = require('./apps/chat')(io);
-var BallGame = require('./apps/ballgame')(io);
+var Chypt = require('./apps/Chypt/chypt')(io);
+var BallGame = require('./apps/BallGame/ballgame')(io);
 //var GameLearning = require('./apps/GameLearning/gamelearning')();
 var WallLearning = require('./apps/WallLearning/walllearning')();
 
