@@ -185,6 +185,7 @@ exports = module.exports = function() {
   var currentGeneration = [];
   var generationSize = 12;
   var hiddenLayers = 10;
+  var learningHighscore = 0;
   var game;
 
   function startLearning() {
@@ -198,6 +199,12 @@ exports = module.exports = function() {
   function learning () {
     if(game.gameState == "stopped") {
       currentGeneration[currentNetworkID][0] = game.score;
+
+      if(game.score > learningHighscore){
+        learningHighscore = game.score;
+        saveTopNetwork(game.score, currentNetwork);
+      }
+
       nextNetwork();
 
       game.setup();
