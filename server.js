@@ -7,6 +7,7 @@ var fs = require('fs');
 var Chat = require('./apps/chat')(io);
 var BallGame = require('./apps/ballgame')(io);
 //var GameLearning = require('./apps/GameLearning/gamelearning')();
+var WallLearning = require('./apps/WallLearning/walllearning')();
 
 app.use(express.static('htdocs'));
 

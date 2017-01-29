@@ -57,6 +57,7 @@ Game.prototype = {
     }
 
     this.score = 0;
+    this.tick = 0;
     this.gameState = "pregame";
 
     this.render();
@@ -194,6 +195,8 @@ function Obstacle(game) {
   this.texture.src = "JS/Textures/Obstacle.png";
 
   this.gapLeftX = parseInt(Math.random() * (this.game.c.width - this.gapSize));
+  if(game.score == 0)
+    this.gapLeftX = game.player.x + game.player.width*2;
   this.gapRightX = this.gapLeftX + this.gapSize;
 
   Obstacle.list[this.id] = this;
@@ -242,7 +245,6 @@ Obstacle.prototype = {
   }
 
 }
-
 Obstacle.list = {};
 
 //-----------------------//
