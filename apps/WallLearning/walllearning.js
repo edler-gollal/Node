@@ -254,7 +254,7 @@ exports = module.exports = function() {
     if(currentNetworkID == generationSize) {
       currentGeneration.sort(sortNumber);
       logInfo("Generation " + generations + " finished, best fitness: " + currentGeneration[0][0]);
-      if((currentGeneration[0][0] == 0)&&(game.highScore == 0)){
+      if(currentGeneration[0][0] < 2){
         currentGeneration = [];
       }
       newGeneration();
