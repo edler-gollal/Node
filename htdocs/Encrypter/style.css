@@ -1,0 +1,77 @@
+html {
+  background-color: black;
+  font: 12px "Lucida Console", Monaco, monospace;
+  color: rgb(0,255,0);
+}
+
+body {
+  margin: 0;
+}
+
+textarea {
+  resize: none;
+  font: 12px "Lucida Console", Monaco, monospace;
+}
+
+input,textarea {
+  border: 1px solid rgb(0,255,0);
+  background-color: rgba(0,255,0,0.3);
+  color: rgb(0, 255, 0);
+}
+
+#input, #output {
+  display: inline-block;
+  position: absolute;
+  height: 90%;
+  width: 50%;
+  overflow: hidden;
+}
+
+.putwrapper {
+  position: relative;
+  padding: 25px;
+}
+
+#input {
+  left: 0;
+  border-right: 1px solid rgb(0,255,0);
+}
+
+#output {
+  right: 0;
+}
+
+#key, #content, #contentoutput {
+  width: 100%;
+  margin: 10px auto;
+  padding: 3px;
+  height: 30px;
+}
+
+#content {
+  height: 600px;
+}
+
+#contentoutput {
+  height: 670px;
+}
+
+#encrypt, #decrypt {
+  height: 10%;
+  position: absolute;
+  bottom: 0;
+  border: 1px solid rgb(0,255,0);
+  font-size: 20px;
+  text-align: center;
+  width: 50%;
+  display: inline-block;
+  background-color: rgba(0,255,0,0.7);
+}
+
+#encrypt {
+  left: 0;
+}
+
+#decrypt {
+  right: 0;
+}

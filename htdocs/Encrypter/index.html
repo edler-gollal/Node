@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Encrypter</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <script src="http://code.jquery.com/jquery-3.1.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+    <script src="Encrypter.js"></script>
+  </head>
+
+  <body>
+    <div id="input">
+      <div class="putwrapper">
+        Key:<input id="key" autocomplete="off" />
+        Decrypted:<textarea id="content" autocomplete="off" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div id="output">
+      <div class="putwrapper">
+        Encrypted:<textarea id="contentoutput" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <button id="encrypt" onclick="encrypt()">Encrypt</button>
+    <button id="decrypt" onclick="decrypt()">Decrypt</button>
+  </body>
+
+</html>

@@ -7,7 +7,7 @@ var fs = require('fs');
 var Chypt = require('./apps/Chypt/chypt')(io);
 var BallGame = require('./apps/BallGame/ballgame')(io);
 //var GameLearning = require('./apps/GameLearning/gamelearning')();
-var WallLearning = require('./apps/WallLearning/walllearning')();
+//var WallLearning = require('./apps/WallLearning/walllearning')();
 
 app.use(express.static('htdocs'));
 
